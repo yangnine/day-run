@@ -1,0 +1,15 @@
+# Rust build output
+/target
+
+# Local test data
+/test
+
+# Secrets
+.env
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

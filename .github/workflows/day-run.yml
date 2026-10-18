@@ -1,0 +1,31 @@
+name: day-run daily
+
+on:
+  schedule:
+    # GitHub cron 用 UTC。台灣 17:30 = UTC 09:30
+    # 1-5 = 週一到週五（交易日）
+    - cron: "30 9 * * 1-5"
+  workflow_dispatch: # 可以手動按按鈕執行，方便 test
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run day-run
+        run: cargo run --release -p day-run
+        env:
+          URL_TWSE: ${{ secrets.URL_TWSE }}
+          URL_TPEX: ${{ secrets.URL_TPEX }}
+          URL_TFEX: ${{ secrets.URL_TFEX }}
+          URL_MIS_TWSE: ${{ secrets.URL_MIS_TWSE }}
+          R2_ID: ${{ secrets.R2_ID }}
+          R2_SECRET: ${{ secrets.R2_SECRET }}
+          R2_URL: ${{ secrets.R2_URL }}
+          R2: ${{ secrets.R2 }}
+          R2_DATA_URL: ${{ secrets.R2_DATA_URL }}
