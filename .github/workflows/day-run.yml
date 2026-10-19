@@ -2,9 +2,9 @@ name: day-run daily
 
 on:
   schedule:
-    # GitHub cron 用 UTC。台灣 17:30 = UTC 09:30
+    # GitHub cron 用 UTC。台灣 17:47 = UTC 09:47（避開半點，減少排程延遲）
     # 1-5 = 週一到週五（交易日）
-    - cron: "30 9 * * 1-5"
+    - cron: "47 9 * * 1-5"
   workflow_dispatch: # 可以手動按按鈕執行，方便 test
 
 jobs:
