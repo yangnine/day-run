@@ -14,6 +14,8 @@ pub struct TaskContext {
     pub run_date: DateTime<Local>,
     pub downloaded_name: String,
     pub downloaded_file: Option<Vec<u8>>,
+    /// migrate 用：(R2 key, gzip bytes)
+    pub migrate_files: Vec<(String, Vec<u8>)>,
     pub url_twse: String,
     pub url_tpex: String,
     pub url_tfex: String,

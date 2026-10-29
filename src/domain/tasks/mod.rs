@@ -2,6 +2,7 @@ pub mod download;
 pub mod market;
 pub mod upload;
 pub mod parser;
+pub mod migrate;
 
 #[derive(Debug, Clone, Copy)]
 pub enum TWAction {

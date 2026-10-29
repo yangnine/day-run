@@ -7,17 +7,22 @@ pub trait JsonFile {
     fn get_bucket(&self) -> Box<Bucket>;
     async fn upload(&self) -> bool;
     async fn delete(&self) -> bool;
-    async fn download(&self) -> String;
+    async fn download(&self) -> Option<Vec<u8>>;
+    async fn list(&self) -> Vec<String>;
 }
 impl JsonFile for R2 {
     async fn upload(&self) -> bool {
-        !self
-            .get_bucket()
-            .put_object_with_content_type(self.path.clone(), &self.data, "application/gzip")
-            .await
-            .is_err()
-        // .put_object_with_content_type(self.path.clone(), &self.data, "application/json")
-        // .put_object_with_content_type(self.path.clone(), &self.data, "image/webp")
+        let bucket = self.get_bucket();
+        // with_content_encoding 會驗證 header 值，所以回傳 Result，要先拆開再 execute
+        let request = match bucket
+            .put_object_builder(self.path.clone(), &self.data)
+            .with_content_type("application/json")
+            .with_content_encoding("gzip")
+        {
+            Ok(r) => r,
+            Err(_) => return false,
+        };
+        request.execute().await.is_ok()
     }
 
     async fn delete(&self) -> bool {
@@ -28,13 +33,24 @@ impl JsonFile for R2 {
             .is_err()
     }
 
-    async fn download(&self) -> String {
-        let res = self.get_bucket().get_object(self.path.clone()).await;
+    // 回傳原始 bytes：gzip 是 binary，轉 String 會壞掉
+    async fn download(&self) -> Option<Vec<u8>> {
+        let res = self.get_bucket().get_object(self.path.clone()).await.ok()?;
+        Some(res.to_vec())
+    }
 
-        match res {
-            Ok(data) => String::from_utf8_lossy(data.as_slice()).to_string(),
-            Err(_) => "".to_string(),
-        }
+    /// 列出 path (prefix) 底下所有 .gz 檔的 key
+    async fn list(&self) -> Vec<String> {
+        let pages = match self.get_bucket().list(self.path.clone(), None).await {
+            Ok(p) => p,
+            Err(_) => return vec![],
+        };
+        pages
+            .into_iter()
+            .flat_map(|page| page.contents)
+            .map(|obj| obj.key)
+            .filter(|key| key.ends_with(".gz"))
+            .collect()
     }
 
     fn get_bucket(&self) -> Box<Bucket> {

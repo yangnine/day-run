@@ -41,7 +41,7 @@ pub struct TaifexRecord {
 
 pub fn parse_json(ctx: &mut TaskContext) -> Result<TaskStatus> {
     let res = serde_json::from_slice::<TpexIndexResponse>(&ctx.downloaded_file.clone().unwrap());
-    let data = match res {
+    let _data = match res {
         Ok(data) => data,
         Err(e) => {
             eprintln!("parse json error: {:?}", e);

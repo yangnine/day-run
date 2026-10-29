@@ -9,7 +9,12 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    let (tasks, mut context) = pipeline::build(conf?);
+    let is_migrate = std::env::args().any(|arg| arg == "migrate");
+    let (tasks, mut context) = if is_migrate {
+        pipeline::build_migrate(conf?)
+    } else {
+        pipeline::build(conf?)
+    };
 
     runner::run(tasks, &mut context)
 }

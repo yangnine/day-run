@@ -100,6 +100,22 @@ pub fn download_from(
     }
 }
 
+pub fn save_local_test(ctx: &mut TaskContext) -> Result<TaskStatus> {
+    if ctx.downloaded_file.is_none() {
+        return Ok(TaskStatus::Skip("[None] downloaded_file".to_string()));
+    }
+
+    let local_path = format!("./test/data/{}", ctx.downloaded_name);
+
+    if let Some(parent) = std::path::Path::new(&local_path).parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
+    std::fs::write(&local_path, ctx.downloaded_file.clone().unwrap())?;
+
+    Ok(TaskStatus::Success(ctx.downloaded_name.clone()))
+}
+
 fn unzip(byte: Bytes) -> Option<Vec<u8>> {
     let mut archive = ZipArchive::new(Cursor::new(byte)).ok()?;
 

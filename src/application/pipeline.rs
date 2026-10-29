@@ -1,5 +1,5 @@
 use crate::{
-    config::AppConfig, domain::{task::{Task, TaskContext}, tasks::{download, parser, upload::{self, upload_to_cloudflare}}},
+    config::AppConfig, domain::{task::{Task, TaskContext}, tasks::{download, migrate, parser, upload}},
 };
 use chrono::{DateTime, Datelike, Duration, Local, Weekday};
 
@@ -53,6 +53,23 @@ pub fn build(config: AppConfig) -> (Vec<Task>, TaskContext) {
         task!(8, parser::parse_csv),
         task!(8, parser::to_gz),
         task!(9, upload::upload_to_cloudflare),
+    ];
+    (tasks, context)
+}
+
+/// 一次性：R2 舊 .gz 檔重新上傳，套用新 header
+pub fn build_migrate(config: AppConfig) -> (Vec<Task>, TaskContext) {
+    let context = TaskContext {
+        s3: config.s3,
+        s3_secret: config.s3_secret,
+        s3_url: config.s3_url,
+        ..Default::default()
+    };
+    let tasks = vec![
+        task!(0, migrate::download_gz_from_cloudflare),
+        // task!(1, migrate::save_migrate_files_local),
+        // 先確認備份沒問題再打開
+        task!(2, migrate::reupload_with_json_header),
     ];
     (tasks, context)
 }
